@@ -4,39 +4,34 @@
 %%Javier Monescillo Buitrón
 %%Alejandro Medina Jimenez
 %%Julian García Sanchez
-%   Leer Fichero2
 
-read_file(File, CharList):- see(File), read_list(CharList), seen.
+%% ENTRADA SALIDA; 
+%% PUEDE SER UN ARCHIVO
 
-read_list([Char | List]) :- get0(Char), Char =\= -1,!, put(Char), read_list(List).
-read_list([]).
-
-%%LECTURA FICHERO
-leer_fichero(fichero):-open(fichero,read, entrada), read_string(entrada,"","",S,String), close(entrada).
-%%LECTURA FICHERO
-%%leer_fichero(fichero):-open(fichero,read, entrada), read_string(entrada,"","",S,String), close(entrada).
+%% TRES PARTES
+%% E/S
+%% PASO A CLAUSULAS, yo me encargo de cambiar esto
+%% RESOLUCION Sld
+%%
 
 %%%DEFINICIÓN DE LOS OPERADORES%%%
-
-:- op(600,yfx,'=>').
-:- op(300,fx,'~').
-:- op(500,xfx,'\\/').
-:- op(400,xfx,'/\\').
+:- op(1200,yfx,'=>').
+:- op(100,fx,'~').
+:- op(900,xfx,'\\/').
+:- op(900,xfx,'/\\').
 
 
 %%%FUNCIONES DE LOS OPERADORES%%%
-
 ~(X) :- \+X.
 /\(X,Y) :- X,Y.
 \/(X,Y) :- X;Y.
-=>(X,Y):- ~X\/Y.
+==>(X,Y):- ~X\/Y.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%FUNCIONAMIENTO%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%FUNCIONAMIENTO%%%
 
-%%%%%% FUNCIONES AUXILIARES %%%%%
-%% L lista, X cabeza etc
+%%%%%% FUNCIONES AUXILIARES
 
 concatenar([],L,L).
 concatenar([X|M],L,[X|Z]):-concatenar(M,L,Z).
@@ -55,64 +50,70 @@ invertir([X|M],Z):-invertir(M,S), concatenar(S,[X],Z).
 
 %%%%%%%
 
-%%%%%%%%%%%%  FUNCION PRINCIPAL %%% L sea una lista de formulas tales como p\/q=>s
+%%%%%%%%%%%%  FUNCION PRINCIPAL
+% SE INTRUDUCEN FORMULAS DE ESTE ESTILO [p=>q\/r, r/\q, etc] NO VALEN PARENTESIS CON IMPLICADORES PORQUE NO ESTA HECHO ES DECIR (P=>Q)=>Q va a petar
+% funcion tiene de parametro de entrada, una funcion del tipo p v q => r y te devuelte G, que es la lista de literales
+%aplanar, convierte las lista de listas en una unica lista, despues se invierte dos veces y se hace el paso 5a
+funcion(L,G):- listas(L,[],E), aplanar(E,F), invertir(F, F2), write('F = '), writeln(F2), invertir(F2,F3), paso5a(F3,[],G), !.
 
-funcion_principal(L,G):- to_lista(L,[],E), 
-						 	aplanar(E,F), 
-						 	invertir(F, F2), write('F = '), 
-						 	writeln(F2), invertir(F2,F3), 
-						 	paso5a(F3,[],G), !.
+% la funcion listas como parametro de entrada tenemos, la formula anterior, y en el metodo anterior le pasamos la lista vacia, que en el caso
+% de esta funcion es S, y la salida es la E, empezando desde la segunda llamada recursiva, es decir si esta la lista con la cabeza L y el cuerpo C, % siendo S otra lista vacia, (que probablemente sea un parámetro de acumulación), llamamos a ejecución, de L y devolvemos P, volvemos a llamar a 
+% listas para que haga lo mismo, pero con el resto de la lista, y en el segundo parametro que es el parametro de acumulación, introducimos la lista 
+% formada por P, que seria la P y el anterior parametro de acumulación que es la lista vacía []
 
+listas([X], S, E):- ejecucion(~X,P), E=[P|S], !.
+listas([L|C], S, E):- ejecucion(L,P),listas(C,[P|S],E).
 
-to_lista([X], S, E):- ejecucion(~X,P), 
-							E=[P|S], !.
-to_lista([L|C], S, E):- ejecucion(L,P), to_lista(C,[P|S],E).
+% lo que le pasamos a ejecución es un literal de la formula
 
-
-ejecucion(L,F):-paso_1(L, C),
-                paso_2(C, D),
-                paso_3(D, E),
-                paso_4(E, F), !.
+ejecucion(L,F):-paso1(L, C),
+                paso2(C, D),
+                paso3(D, E),
+                paso4(E, F), !.
 
 
 %%%%%%%%%PASO 1: DEFINICION DEL IMPLICADOR
-paso_1(A=>B,C) :- paso_1(~A,C1), paso_1(B,C2), C = (C1\/C2).
-paso_1(A\/B,C) :- paso_1(A,C1), paso_1(B,C2), C = (C1\/C2).
-paso_1(A/\B,C) :- paso_1(A,C1), paso_1(B,C2), C = (C1/\C2).
-paso_1(~A,C):- paso_1(A,C1), C = (~C1), !.
-paso_1(A,C) :- atom(A), C = A, !.
+% La definición del implicador es basicamente transformar de implicación a forma conjuntiva
+% faltaria añadir el caso de que sea algo asi ((A=>B)=>C)
+paso1(A=>B,C) :- paso1(~A,C1), paso1(B,C2), C = (C1\/C2).
+paso1(A\/B,C) :- paso1(A,C1), paso1(B,C2), C = (C1\/C2).
+paso1(A/\B,C) :- paso1(A,C1), paso1(B,C2), C = (C1/\C2).
+paso1(~A,C):- paso1(A,C1), C = (~C1), !.
+paso1(A,C) :- atom(A), C = A, !.
 
 
 %%%%%%%%%PASO 2: LEYES DE DEMORGAN, Y DOBLE NEGADOR
-paso_2(~A,~A):- atom(A), !.
-paso_2(~(~A),C):- paso_2(A,C1),C=C1.
-paso_2(~(A\/B),C):- paso_2(~A,C1), paso_2(~B,C2), C = (C1/\C2).
-paso_2(~(A/\B),C):- paso_2(~A,C1), paso_2(~B,C2), C = (C1\/C2).
-paso_2(A\/B, C\/D):- paso_2(A, C), paso_2(B,D) .
-paso_2(A/\B, C/\D):- paso_2(A, C), paso_2(B,D) .
-paso_2(A,C):- atom(A), C = A, !.
+%% como parametro tenemos al principio el doble negador
+paso2(~A,~A):- atom(A), !.
+paso2(~(~A),C):- paso2(A,C1),C=C1.
+paso2(~(A\/B),C):- paso2(~A,C1), paso2(~B,C2), C = (C1/\C2).
+paso2(~(A/\B),C):- paso2(~A,C1), paso2(~B,C2), C = (C1\/C2).
+paso2(A\/B, C\/D):- paso2(A, C), paso2(B,D) .
+paso2(A/\B, C/\D):- paso2(A, C), paso2(B,D) .
+paso2(A,C):- atom(A), C = A, !.
 
 
 %%%%%%%%%PASO 3: APLICACION DE LA DISTRIBUTIVA DE LA DISYUNCION
-paso_3(A\/(B/\C) , S):- S = ((A\/B) /\ (A\/C)), !.
-paso_3((A/\B)\/C , S):- S = ((A\/C) /\ (B\/C)), !.
-paso_3(A,C):- C=A, !.
+% ditributiva
+paso3(A\/(B/\C) , S):- S = ((A\/B) /\ (A\/C)), !.
+paso3((A/\B)\/C , S):- S = ((A\/C) /\ (B\/C)), !.
+paso3(A,C):- C=A, !.
 
 
 %%%%%%%%%PASO 4: ELIMINACION DE CONJUNCIONES
-paso_4(A/\B,C):- paso_4(A, C1), paso_4(B, C2), C = [C2, C1], !.
-paso_4(A,C):- C=A, !.
+% eliminamos las conjunciones 
+paso4(A/\B,C):- paso4(A, C1), paso4(B, C2), C = [C2, C1], !.
+paso4(A,C):- C=A, !.
 
 
 %%%%%%%%%PASO 5: CONVERSION DE CLAUSULAS EN LISTAS DE LITERALES
-paso_5a([A|B], S, E):- paso5b(A, S1), paso5a(B, [S1|S], E).
-paso_5a([], S, E):- E = S, !.
-paso_5b(A\/B, S):- paso_5b(A, S1), paso_5b(B, S2), S3 = [S1,S2], aplanar(S3, S), !.
-paso_5b(~A, S):- atom(A), S = [~A], !.
-paso_5b(A, S):-  atom(A), S = [A], !.
-
-
-
+% ahora si, tenemos que poner las clausulas en listas de literales
+% para ello contamos con el caso base que es una lista con la cabeaa A y cuerpo B, al cual le pasamos a que si es negado, lo introduce en s negado y % y si no es negado no lo introduce negado, y al igual con la tercera llamada recursiva si es A o B entonces tenemos que se convierte en un literal, % en s3= [S1,S2+ 
+paso5a([A|B], S, E):- paso5b(A, S1), paso5a(B, [S1|S], E).
+paso5a([], S, E):- E = S, !.
+paso5b(A\/B, S):- paso5b(A, S1), paso5b(B, S2), S3 = [S1,S2], aplanar(S3, S), !.
+paso5b(~A, S):- atom(A), S = [~A], !.
+paso5b(A, S):-  atom(A), S = [A], !.
 
 
 

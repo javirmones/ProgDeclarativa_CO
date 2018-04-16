@@ -14,3 +14,6 @@ obtener_resolvente(Lista, Resolvente):-
 	write('Clausula 1 : '),writeln(A),
 	write('Clausula 2 : '),writeln(B),
 	write('Resolvente : '),writeln(Resolvente),writeln('')).
+
+miembro(E, L):- member(E,L), !.
+% AQUI HAY QUE IR A PASCUAL A QUUE NOS LO EXPLIQUE LA RESOLUCION
