@@ -1,3 +1,5 @@
+%% LO QUE TENIAMOS DE ANTES POR SI ACASO SIRVE
+
 resolver(Lista):-
 	once(obtener_resolvente(Lista, Resolvente)),
 	once(obtener_escritura_fichero(Lista, Resolvente)),
@@ -15,5 +17,19 @@ obtener_resolvente(Lista, Resolvente):-
 	write('Clausula 2 : '),writeln(B),
 	write('Resolvente : '),writeln(Resolvente),writeln('')).
 
-miembro(E, L):- member(E,L), !.
+
 % AQUI HAY QUE IR A PASCUAL A QUUE NOS LO EXPLIQUE LA RESOLUCION
+
+%% RESOLUCION DE MEDINA
+
+
+miembro(E, L):- member(E,L), !.
+
+resolucion([]).
+resolucion([C|L]):- res(C,L).
+
+
+res([],[]).
+res([X|Xs],[[~X]|Ys]:-res(Xs,Ys).
+res([~X|Xs],[[X]|Ys]:-res(Xs,Ys).
+res([X|Xs],[Y|Ys]):- res([X],Ys),res(Xs,[Y]).
