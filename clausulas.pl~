@@ -5,7 +5,7 @@
 %%Alejandro Medina Jimenez
 %%Julian García Sanchez
 
-%% ENTRADA SALIDA;
+%% ENTRADA SALIDA; 
 %% PUEDE SER UN ARCHIVO
 
 %% TRES PARTES
@@ -57,8 +57,8 @@ invertir([X|M],Z):-invertir(M,S), concatenar(S,[X],Z).
 funcion(L,G):- listas(L,[],E), aplanar(E,F), invertir(F, F2), write('Formulas = '), writeln(F2), invertir(F2,F3), paso5a(F3,[],G), !.
 
 % la funcion listas como parametro de entrada tenemos, la formula anterior, y en el metodo anterior le pasamos la lista vacia, que en el caso
-% de esta funcion es S, y la salida es la E, empezando desde la segunda llamada recursiva, es decir si esta la lista con la cabeza L y el cuerpo C, % siendo S otra lista vacia, (que probablemente sea un parámetro de acumulación), llamamos a ejecución, de L y devolvemos P, volvemos a llamar a
-% listas para que haga lo mismo, pero con el resto de la lista, y en el segundo parametro que es el parametro de acumulación, introducimos la lista
+% de esta funcion es S, y la salida es la E, empezando desde la segunda llamada recursiva, es decir si esta la lista con la cabeza L y el cuerpo C, % siendo S otra lista vacia, (que probablemente sea un parámetro de acumulación), llamamos a ejecución, de L y devolvemos P, volvemos a llamar a 
+% listas para que haga lo mismo, pero con el resto de la lista, y en el segundo parametro que es el parametro de acumulación, introducimos la lista 
 % formada por P, que seria la P y el anterior parametro de acumulación que es la lista vacía []
 
 listas([X], S, E):- ejecucion(~X,P), E=[P|S], !.
@@ -72,7 +72,7 @@ ejecucion(L,F):-paso1(L, C), paso2(C, D), paso3(D, E), paso4(E, F), !.
 %%%%%%%%%PASO 1: DEFINICION DEL IMPLICADOR
 % La definición del implicador es basicamente transformar de implicación a forma conjuntiva
 
-paso1((A=>(B=>C),D) :- paso1(~A,D1), paso1(~(B=>C),D2), D=(D1\/D2)).
+paso1((A=>(B=>C),D) :- paso1(~A,D1), paso1(~(B=>C),D2), D=(D1\/D2).
 paso1((A=>B)=>C,D) :- paso1(~(A=>B),D1), paso1(C,D2), D=(D1\/D2).
 paso1(~(A=>B),C) :- paso1(~(~A),C1), paso1(~B,C2), C=(C1\/C2).
 paso1(A=>B,C) :- paso1(~A,C1), paso1(B,C2), C = (C1\/C2).
@@ -101,7 +101,7 @@ paso3(A,C):- C=A, !.
 
 
 %%%%%%%%%PASO 4: ELIMINACION DE CONJUNCIONES
-% eliminamos las conjunciones
+% eliminamos las conjunciones 
 paso4(A/\B,C):- paso4(A, C1), paso4(B, C2), C = [C2, C1], !.
 paso4(A,C):- C=A, !.
 
